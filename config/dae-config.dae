@@ -1,0 +1,147 @@
+# dae Configuration
+# See https://github.com/daeuniverse/dae/blob/main/docs/en/configuration/README.md
+
+global {
+  # tproxy 端口
+  tproxy_port: 12345
+
+  # 日志级别: error, warn, info, debug, trace
+  log_level: info
+
+  # 是否允许不安全证书
+  allow_insecure: false
+
+  # 自动配置防火墙规则
+  auto_config_firewall_rule: true
+
+  # 自动配置内核参数
+  auto_config_kernel_parameter: true
+
+  # TCP 检查 URL
+  tcp_check_url: 'http://www.msftconnecttest.com/connecttest.txt,http://www.apple.com/library/test/success.html'
+  
+  # UDP 检查 DNS
+  udp_check_dns: 'dns.google:53,1.1.1.1:53'
+
+  # 检查间隔
+  check_interval: 30s
+
+  # 检查容差（检查失败几次后认为节点不可用）
+  check_tolerance: 50ms
+
+  # LAN 接口
+  lan_interface: eth0
+
+  # WAN 接口  
+  wan_interface: eth0
+
+  # 是否禁用等待网络
+  disable_waiting_network: false
+}
+
+# 订阅配置
+subscription {
+  # 示例订阅
+  # my_subscription: 'https://example.com/subscription'
+}
+
+# 节点配置
+node {
+  # 示例节点配置
+  # 'ss-example': 'ss://[cipher]:[password]@[server]:[port]'
+  # 'vmess-example': 'vmess://[base64_encoded_config]'
+}
+
+# 节点组配置
+group {
+  # 自动选择组
+  auto {
+    # 过滤条件
+    filter: name(keyword: '') && !name(keyword: 'expire|traffic|官网')
+    
+    # 策略: min_moving_avg (最小移动平均延迟)
+    policy: min_moving_avg
+  }
+
+  # 手动选择组
+  proxy {
+    # 使用自动组作为默认
+    policy: min_moving_avg
+  }
+}
+
+# DNS 配置
+dns {
+  # 上游 DNS 服务器
+  upstream {
+    # 国内 DNS
+    alidns: 'udp://223.5.5.5:53'
+    dnspod: 'udp://119.29.29.29:53'
+    
+    # 国外 DNS
+    google: 'tcp+udp://8.8.8.8:53'
+    cloudflare: 'tcp+udp://1.1.1.1:53'
+  }
+
+  # DNS 路由
+  routing {
+    # 国内域名使用国内 DNS
+    request {
+      # 匹配国内域名
+      qname(geosite:cn) -> alidns
+      qname(geosite:category-ads-all) -> reject
+      
+      # 其他使用国外 DNS
+      fallback: google
+    }
+
+    # 响应路由
+    response {
+      # 国内 IP 使用国内 DNS 结果
+      ip(geoip:cn) && !qname(geosite:geolocation-!cn) -> accept
+      
+      # 污染的结果拒绝
+      ip(geoip:private) && !qname(geosite:cn) -> reject
+      
+      fallback: accept
+    }
+  }
+}
+
+# 路由配置
+routing {
+  ### 必需的直连规则 ###
+  
+  # 放行 dae 相关流量
+  pname(dae) -> direct
+  
+  # 放行 mihomo 相关流量  
+  pname(mihomo) -> direct
+
+  # 局域网流量直连
+  dip(224.0.0.0/3, 'ff00::/8') -> direct
+  
+  # 内网地址直连
+  dip(geoip:private) -> direct
+
+  ### DNS 相关规则 ###
+  
+  # DNS 流量
+  l4proto(udp) && dport(53) -> direct
+
+  ### 应用规则 ###
+
+  # 国内网站直连
+  domain(geosite:cn) -> direct
+  
+  # 广告拦截
+  domain(geosite:category-ads-all) -> block
+
+  # 国内 IP 直连  
+  dip(geoip:cn) -> direct
+
+  ### 默认规则 ###
+  
+  # 其他流量走代理
+  fallback: proxy
+}

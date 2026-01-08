@@ -1,0 +1,115 @@
+# Mihomo Configuration
+# HTTP(S) 代理端口
+port: 7890
+
+# SOCKS5 代理端口
+socks-port: 7891
+
+# 允许局域网连接
+allow-lan: true
+
+# 绑定IP地址，* 表示所有地址
+bind-address: "*"
+
+# 运行模式：rule（规则）、global（全局）、direct（直连）
+mode: rule
+
+# 日志级别：silent/error/warning/info/debug
+log-level: info
+
+# 外部控制器（用于 Web UI）
+external-controller: 0.0.0.0:9090
+
+# RESTful API 的口令
+secret: ""
+
+# DNS 配置
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - 'localhost.ptlogin2.qq.com'
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  fallback:
+    - 8.8.8.8
+    - 1.1.1.1
+  fallback-filter:
+    geoip: true
+    ipcidr:
+      - 240.0.0.0/4
+
+# 代理节点配置
+proxies:
+  # 示例 Shadowsocks 节点
+  - name: "ss-example"
+    type: ss
+    server: server.example.com
+    port: 8388
+    cipher: aes-256-gcm
+    password: "password"
+    udp: true
+
+  # 示例 VMess 节点
+  - name: "vmess-example"
+    type: vmess
+    server: server.example.com
+    port: 443
+    uuid: uuid-here
+    alterId: 0
+    cipher: auto
+    tls: true
+    skip-cert-verify: false
+
+# 代理组
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "ss-example"
+      - "vmess-example"
+      - DIRECT
+
+  - name: "Auto"
+    type: url-test
+    proxies:
+      - "ss-example"
+      - "vmess-example"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+# 规则
+rules:
+  # LAN 直连
+  - DOMAIN-SUFFIX,local,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+
+  # 常见广告域名屏蔽
+  - DOMAIN-KEYWORD,adservice,REJECT
+  - DOMAIN-KEYWORD,analytics,REJECT
+
+  # 国外网站代理
+  - DOMAIN-SUFFIX,google.com,Proxy
+  - DOMAIN-SUFFIX,youtube.com,Proxy
+  - DOMAIN-SUFFIX,facebook.com,Proxy
+  - DOMAIN-SUFFIX,twitter.com,Proxy
+  - DOMAIN-SUFFIX,github.com,Proxy
+
+  # 国内网站直连
+  - DOMAIN-SUFFIX,cn,DIRECT
+  - DOMAIN-KEYWORD,baidu,DIRECT
+  - DOMAIN-KEYWORD,aliyun,DIRECT
+  - DOMAIN-KEYWORD,taobao,DIRECT
+
+  # GeoIP 规则
+  - GEOIP,CN,DIRECT
+
+  # 最终规则
+  - MATCH,Proxy

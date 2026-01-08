@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  mihomo-dae:
+    build: .
+    image: ghcr.io/gitpopo-rgb/docker-mihomo-dae:latest
+    container_name: mihomo-dae
+    privileged: true
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      # 配置文件挂载
+      - ./config/mihomo-config.yaml:/etc/mihomo/config.yaml:ro
+      - ./config/dae-config.dae:/etc/dae/config.dae:ro
+      # 日志持久化
+      - ./logs:/var/log/supervisor
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
