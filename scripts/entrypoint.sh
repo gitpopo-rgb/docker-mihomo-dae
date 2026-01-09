@@ -22,7 +22,7 @@ echo "Mihomo version:"
 
 echo ""
 echo "dae version:"
-/usr/local/bin/dae version || echo "Failed to get dae version"
+/usr/local/bin/dae -v || echo "Failed to get dae version"
 
 echo ""
 echo "=========================================="
