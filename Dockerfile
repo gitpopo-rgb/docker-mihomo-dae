@@ -21,14 +21,14 @@ COPY --from=mihomo /mihomo /usr/local/bin/mihomo
 COPY --from=dae /usr/local/bin/dae /usr/local/bin/dae
 
 # 创建必要的目录
-RUN mkdir -p /etc/mihomo /etc/dae /var/log/supervisor /var/run
+RUN mkdir -p /root/.config/mihomo /root/.config/dae /var/log/supervisor /var/run
 
 # 设置权限
 RUN chmod +x /usr/local/bin/mihomo /usr/local/bin/dae
 
 # 复制配置文件
-COPY config/mihomo-config.yaml /etc/mihomo/config.yaml
-COPY config/dae-config.dae /etc/dae/config.dae
+COPY config/mihomo-config.yaml /root/.config/mihomo/config.yaml
+COPY config/dae-config.dae /root/.config/dae/config.dae
 COPY config/supervisord.conf /etc/supervisord.conf
 
 # 创建启动脚本

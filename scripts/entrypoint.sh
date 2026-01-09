@@ -6,13 +6,13 @@ echo "Starting mihomo + dae integrated proxy"
 echo "=========================================="
 
 # 检查配置文件
-if [ ! -f /etc/mihomo/config.yaml ]; then
-    echo "Warning: Mihomo config not found at /etc/mihomo/config.yaml"
+if [ ! -f /root/.config/mihomo/config.yaml ]; then
+    echo "Warning: Mihomo config not found at /root/.config/mihomo/config.yaml"
     echo "Using default configuration..."
 fi
 
-if [ ! -f /etc/dae/config.dae ]; then
-    echo "Warning: dae config not found at /etc/dae/config.dae"
+if [ ! -f /root/.config/dae/config.dae ]; then
+    echo "Warning: dae config not found at /root/.config/dae/config.dae"
     echo "Using default configuration..."
 fi
 
